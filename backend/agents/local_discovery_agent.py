@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 from google import genai
 
 from data.sample_places import places
+from skills.food_skill import get_food_suggestion
+from skills.photo_skill import get_photo_spot
+from skills.experience_skill import get_experience_suggestion
 
 load_dotenv()
 
@@ -13,9 +16,22 @@ def find_local_suggestions(destination):
     ai_result = get_ai_suggestions(destination)
 
     if ai_result:
-        return ai_result
+        return build_skill_response(ai_result)
 
-    return get_fallback_suggestions(destination)
+    fallback_result = get_fallback_suggestions(destination)
+    return build_skill_response(fallback_result)
+
+
+def build_skill_response(place_data):
+    return {
+        "food": get_food_suggestion(place_data),
+        "photo_spot": get_photo_spot(place_data),
+        "experience": get_experience_suggestion(place_data),
+        "safety": place_data.get(
+            "safety",
+            "Check weather, opening hours, parking, and local safety before visiting."
+        )
+    }
 
 
 def get_ai_suggestions(destination):

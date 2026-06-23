@@ -33,6 +33,42 @@ function App() {
       setLoading(false);
     }
   };
+  const startAutoMode = () => {
+  setLoading(true);
+  setPlan("");
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const response = await fetch("http://127.0.0.1:8000/auto-suggest", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          movement_status: "moving",
+          stationary_minutes: 5,
+          last_suggestion_minutes: 30,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.suggest_now) {
+        setPlan(data.suggestion);
+      } else {
+        setPlan(`No suggestion right now.\nReason: ${data.reason}`);
+      }
+
+      setLoading(false);
+    },
+    () => {
+      setPlan("Location permission denied. Please allow location access.");
+      setLoading(false);
+    }
+  );
+};
 
   return (
     <div className="app">
@@ -49,7 +85,7 @@ function App() {
 
         <input
           type="text"
-          placeholder="Available time e.g. 2 hours"
+          placeholder="Trip duration e.g. 2 hours"
           value={availableTime}
           onChange={(e) => setAvailableTime(e.target.value)}
         />
@@ -62,10 +98,14 @@ function App() {
         />
 
         <button onClick={generatePlan} disabled={loading}>
-          {loading ? "Creating Plan..." : "Generate WanderCue Plan"}
-        </button>
+      {loading ? "Creating Plan..." : "Generate WanderCue Plan"}
+      </button>
 
-        {plan && <pre className="result">{plan}</pre>}
+<button onClick={startAutoMode} disabled={loading}>
+  Start WanderCue Auto Mode
+</button>
+
+{plan && <pre className="result">{plan}</pre>}
       </div>
     </div>
   );
