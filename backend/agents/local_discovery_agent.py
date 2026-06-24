@@ -12,8 +12,8 @@ load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-def find_local_suggestions(destination):
-    ai_result = get_ai_suggestions(destination)
+def find_local_suggestions(destination, time_context=None):
+    ai_result = get_ai_suggestions(destination, time_context)
 
     if ai_result:
         return build_skill_response(ai_result)
@@ -34,23 +34,46 @@ def build_skill_response(place_data):
     }
 
 
-def get_ai_suggestions(destination):
+def get_ai_suggestions(destination, time_context=None):
     try:
-        prompt = f"""
-You are WanderCue, a local travel discovery agent.
+        time_of_day = "current time"
+        recommendation_focus = ["food", "photo spots", "experiences"]
 
-The user is traveling to: {destination}
+        if time_context:
+            time_of_day = time_context.get("time_of_day", "current time")
+            recommendation_focus = time_context.get(
+                "recommendation_focus",
+                ["food", "photo spots", "experiences"]
+            )
+
+        prompt = f"""
+You are WanderCue, a proactive local travel discovery agent.
+
+The user is currently near: {destination}
+The current time context is: {time_of_day}
+The recommendation focus is: {", ".join(recommendation_focus)}
+
+Suggest local recommendations that make sense for the current time of day.
+
+Examples:
+- Morning: coffee, breakfast, sunrise spots, peaceful walks
+- Afternoon: food, attractions, photo spots, experiences
+- Evening: sunset spots, dinner, golden-hour photos
+- Night: safe public places, night views, popular nightlife
 
 Return JSON only in this exact format:
 {{
-  "food": "one local food or restaurant suggestion",
-  "photo_spot": "one beautiful photo spot",
-  "experience": "one unique local experience",
-  "safety": "one practical safety tip"
+  "food": "one local food, cafe, dessert, or restaurant suggestion",
+  "photo_spot": "one scenic or photo-worthy spot suitable for this time",
+  "experience": "one unique local experience or vibe suitable for this time",
+  "safety": "one practical safety tip for this location and time"
 }}
 
-Keep each value under 30 words.
-Mention if opening hours should be verified.
+Rules:
+- Keep each value under 30 words.
+- Make recommendations local and realistic.
+- Mention if opening hours should be verified.
+- Avoid unsafe or isolated places at night.
 """
 
         response = client.models.generate_content(

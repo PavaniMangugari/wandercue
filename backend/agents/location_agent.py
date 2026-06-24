@@ -1,23 +1,39 @@
+from geopy.geocoders import Nominatim
+
 def detect_location_context(latitude, longitude):
     """
-    Temporary mock location logic.
-    Later this can be replaced with Google Maps Geocoding API.
+    Converts latitude and longitude into a city/location name.
+    Uses reverse geocoding.
     """
 
-    # Niagara Falls approximate area
-    if 43.0 <= latitude <= 43.2 and -79.2 <= longitude <= -78.8:
-        return "Niagara Falls"
+    try:
+        geolocator = Nominatim(user_agent="wandercue")
+        location = geolocator.reverse((latitude, longitude), language="en")
 
-    # New York City approximate area
-    if 40.5 <= latitude <= 40.9 and -74.3 <= longitude <= -73.7:
-        return "New York City"
+        if not location:
+            return "Unknown Location"
 
-    # Las Vegas approximate area
-    if 36.0 <= latitude <= 36.3 and -115.4 <= longitude <= -114.9:
-        return "Las Vegas"
-   
-    # Harrisburg / Mechanicsburg area
-    if 40.15 <= latitude <= 40.35 and -77.10 <= longitude <= -76.60:
-        return "Harrisburg"
+        address = location.raw.get("address", {})
 
-    return "Unknown Location"
+        city = (
+            address.get("city")
+            or address.get("town")
+            or address.get("village")
+            or address.get("municipality")
+            or address.get("county")
+        )
+
+        state = address.get("state")
+
+        if city and state:
+            return f"{city}, {state}"
+
+        if city:
+            return city
+
+        return "Unknown Location"
+
+    except Exception as error:
+        print("Location detection failed.")
+        print(error)
+        return "Unknown Location"

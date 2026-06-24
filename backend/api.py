@@ -86,7 +86,8 @@ def auto_suggest(request: AutoSuggestRequest):
     suggestion = run_wandercue(
         location,
         time_context["time_of_day"],
-        time_context["recommendation_focus"]
+        time_context["recommendation_focus"],
+        time_context
     )
 
     return {
