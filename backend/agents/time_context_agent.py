@@ -23,5 +23,5 @@ def get_time_context():
 
     return {
         "time_of_day": "night",
-        "recommendation_focus": ["night views", "safe public places", "popular nightlife"]
+        "recommendation_focus": ["food","night views", "safe public places", "popular nightlife"]
     }

@@ -6,7 +6,7 @@ def create_trip_plan(destination, available_time, interests, suggestions):
 WanderCue Travel Plan
 ==================================
 
-Trip: {destination}
+Current Location: {destination}
 Time Context: {available_time}
 Interests: {', '.join(interests)}
 
@@ -32,7 +32,7 @@ Interests: {', '.join(interests)}
 
     plan += f"""
 🗺 Suggested Plan:
-Based on your current time and location, start with the most relevant nearby spot, then try food or a quick local experience if it fits.
+Based on your current location, explore these nearby places and experiences that are most relevant right now.
 ⚠ Safety Tip:
 {suggestions['safety']}
 """

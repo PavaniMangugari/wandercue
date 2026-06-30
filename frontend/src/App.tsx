@@ -1,17 +1,44 @@
 import { useState } from "react";
 import "./App.css";
 
+type Place = {
+  name: string;
+  address: string;
+  rating: number | string;
+  review_count?: number;
+  distance_miles?: number | null;
+  open_now?: boolean | null;
+  weekday_descriptions?: string[];
+  types: string[];
+};
+
+type Cards = {
+  current_location: string;
+  time_of_day: string;
+  recommendation_focus: string[];
+  food: {
+    top_rated: Place | null;
+    healthy: Place | null;
+    different_cuisine: Place | null;
+  };
+  photo_spot: Place | null;
+  experience: Place | null;
+  safety_tip: string;
+};
+
 function App() {
-  const [plan, setPlan] = useState("");
+  const [cards, setCards] = useState<Cards | null>(null);
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const startAutoMode = () => {
     setLoading(true);
-    setPlan("");
+    setCards(null);
+    setMessage("");
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const response = await fetch("http://127.0.0.1:8000/auto-suggest", {
+        const response = await fetch("http://127.0.0.1:8000/auto-suggest-v2", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -28,17 +55,65 @@ function App() {
         const data = await response.json();
 
         if (data.suggest_now) {
-          setPlan(data.suggestion);
+          setCards(data.cards);
         } else {
-          setPlan(`No suggestion right now.\nReason: ${data.reason}`);
+          setMessage(`No suggestion right now. Reason: ${data.reason}`);
         }
 
         setLoading(false);
       },
       () => {
-        setPlan("Location permission denied. Please allow location access.");
+        setMessage("Location permission denied. Please allow location access.");
         setLoading(false);
       }
+    );
+  };
+  const getTodayHours = (place: Place) => {
+  if (!place.weekday_descriptions || place.weekday_descriptions.length === 0) {
+    return null;
+  }
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+  });
+
+  return place.weekday_descriptions.find((day) =>
+    day.toLowerCase().startsWith(today.toLowerCase())
+  );
+};
+
+  const renderPlaceCard = (title: string, emoji: string, place: Place | null) => {
+    if (!place) return null;
+
+    return (
+        <div className={`recommendation-card ${title.toLowerCase().replaceAll(" ", "-")}`}>     
+        <h3>{emoji} {title}</h3>
+        <h4>{place.name}</h4>
+        <p>{place.address}</p>
+        <p>
+  ⭐ {place.rating}
+  {place.review_count ? ` (${place.review_count.toLocaleString()} reviews)` : ""}
+</p>
+
+{place.open_now !== undefined && place.open_now !== null && (
+  <p>{place.open_now ? "🟢 Open Now" : "🔴 Closed"}</p>
+)}
+
+{getTodayHours(place) && (
+  <p>⏱ {getTodayHours(place)}</p>
+)}
+
+{place.distance_miles !== null && place.distance_miles !== undefined && (
+  <p>📍 {place.distance_miles} miles away</p>
+)}
+        <a
+           className="directions-button" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + " " + place.address)}`}
+  target="_blank"
+  rel="noreferrer"
+>
+  Get Directions
+ </a>
+      </div>
     );
   };
 
@@ -49,10 +124,31 @@ function App() {
         <p className="subtitle">Your on-the-go AI travel companion</p>
 
         <button onClick={startAutoMode} disabled={loading}>
-          {loading ? "Finding nearby suggestions..." : "Start WanderCue"}
+          {loading ? "Finding nearby places..." : "Start WanderCue"}
         </button>
 
-        {plan && <pre className="result">{plan}</pre>}
+        {message && <p className="message">{message}</p>}
+
+        {cards && (
+          <div className="dashboard">
+            <div className="location-card">
+              <h2>📍 Current Location</h2>
+              <p>{cards.current_location}</p>
+              <span>{cards.time_of_day}</span>
+            </div>
+
+            {renderPlaceCard("Top Rated Restaurant", "🍴", cards.food.top_rated)}
+            {renderPlaceCard("Healthy Food Option", "🥗", cards.food.healthy)}
+            {renderPlaceCard("Different Cuisine Option", "🌎", cards.food.different_cuisine)}
+            {renderPlaceCard("Best Photo Spot", "📸", cards.photo_spot)}
+            {renderPlaceCard("Local Experience", "🎯", cards.experience)}
+
+            <div className="recommendation-card safety">
+              <h3>⚠ Safety Tip</h3>
+              <p>{cards.safety_tip}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

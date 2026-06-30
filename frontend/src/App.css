@@ -1,62 +1,144 @@
 .app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #eef2ff, #fdf2f8);
+  background: #f4f7fb;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 24px;
+  align-items: flex-start;
+  padding: 40px 16px;
   font-family: Arial, sans-serif;
 }
 
 .card {
   width: 100%;
-  max-width: 620px;
+  max-width: 760px;
   background: white;
-  padding: 32px;
-  border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
 h1 {
-  margin: 0;
-  font-size: 42px;
-  color: #312e81;
+  text-align: center;
+  margin-bottom: 6px;
 }
 
 .subtitle {
-  margin-top: 8px;
+  text-align: center;
+  color: #667085;
   margin-bottom: 24px;
-  color: #555;
-  font-size: 16px;
-}
-
-input {
-  width: 100%;
-  padding: 14px 16px;
-  margin-bottom: 14px;
-  border: 1px solid #ddd;
-  border-radius: 14px;
-  font-size: 16px;
-  box-sizing: border-box;
 }
 
 button {
   width: 100%;
-  padding: 14px 18px;
+  padding: 14px;
   border: none;
   border-radius: 14px;
-  background: #4f46e5;
+  background: #2563eb;
   color: white;
   font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.result {
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.dashboard {
   margin-top: 24px;
-  background: #f8fafc;
-  padding: 20px;
-  border-radius: 16px;
-  white-space: pre-wrap;
-  font-size: 15px;
-  line-height: 1.5;
+  display: grid;
+  gap: 16px;
+}
+
+.location-card,
+.recommendation-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 18px;
+  background: #ffffff;
+}
+
+.location-card {
+  background: #eef6ff;
+}
+.directions-button {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #2563eb;
+  color: white;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.directions-button:hover {
+  background: #1d4ed8;
+}
+
+.location-card h2,
+.recommendation-card h3 {
+  margin: 0 0 8px;
+}
+
+.location-card p,
+.recommendation-card p {
+  margin: 6px 0;
+  color: #475467;
+}
+
+.location-card span {
+  display: inline-block;
+  margin-top: 8px;
+  background: white;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: #2563eb;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.recommendation-card h4 {
+  margin: 8px 0;
+  font-size: 18px;
+}
+
+.safety {
+  background: #fff7ed;
+}
+
+.message {
+  margin-top: 18px;
+  color: #475467;
+  text-align: center;
+}
+.top-rated-restaurant {
+  background: #fff7ed;
+}
+
+.healthy-food-option {
+  background: #ecfdf3;
+}
+
+.different-cuisine-option {
+  background: #fefce8;
+}
+
+.best-photo-spot {
+  background: #eff6ff;
+}
+
+.local-experience {
+  background: #f5f3ff;
+}
+
+.recommendation-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
 }

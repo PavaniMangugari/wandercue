@@ -4,34 +4,143 @@ from dotenv import load_dotenv
 from google import genai
 
 from data.sample_places import places
-from skills.food_skill import get_food_suggestion
-from skills.photo_skill import get_photo_spot
-from skills.experience_skill import get_experience_suggestion
+from services.google_places_service import get_places_for_wandercue
 
 load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-def find_local_suggestions(destination, time_context=None):
+
+def find_local_suggestions(destination, time_context=None, latitude=None, longitude=None):
+    if latitude is not None and longitude is not None:
+        google_places_result = get_google_places_suggestions(
+            latitude,
+            longitude,
+            time_context
+        )
+
+        if google_places_result:
+            return google_places_result
+
     ai_result = get_ai_suggestions(destination, time_context)
 
     if ai_result:
-        return build_skill_response(ai_result)
+        return ai_result
 
-    fallback_result = get_fallback_suggestions(destination)
-    return build_skill_response(fallback_result)
+    return get_fallback_suggestions(destination)
 
 
-def build_skill_response(place_data):
+def get_google_places_suggestions(latitude, longitude, time_context=None):
+    time_of_day = "afternoon"
+
+    if time_context:
+        time_of_day = time_context.get("time_of_day", "afternoon")
+
+    places_data = get_places_for_wandercue(latitude, longitude, time_of_day)
+
+    food_places = places_data.get("food_places", [])
+    healthy_food_places = places_data.get("healthy_food_places", [])
+    attraction_places = places_data.get("attraction_places", [])
+    nightlife_places = places_data.get("nightlife_places", [])
+
+    if not food_places and not attraction_places and not nightlife_places:
+        return None
+
     return {
-        "food": get_food_suggestion(place_data),
-        "photo_spot": get_photo_spot(place_data),
-        "experience": get_experience_suggestion(place_data),
-        "safety": place_data.get(
-            "safety",
-            "Check weather, opening hours, parking, and local safety before visiting."
-        )
+        "food": select_food_recommendations(food_places,healthy_food_places),
+        "photo_spot": select_photo_spot(attraction_places),
+        "experience": select_experience(attraction_places, nightlife_places),
+        "safety": "Check opening hours, parking, weather, and local safety before visiting."
     }
+
+def select_food_recommendations(food_places, healthy_food_places=None):
+    if not food_places:
+        return "No food suggestion found nearby."
+
+    sorted_food = sorted(
+        food_places,
+        key=lambda place: place["rating"] if isinstance(place["rating"], (int, float)) else 0,
+        reverse=True
+    )
+
+    top_food = sorted_food[0]
+
+    healthy_food = None
+
+    if healthy_food_places:
+        sorted_healthy = sorted(
+            healthy_food_places,
+            key=lambda place: place["rating"] if isinstance(place["rating"], (int, float)) else 0,
+            reverse=True
+        )
+        healthy_food = sorted_healthy[0]
+
+    different_cuisine = next(
+        (
+            place for place in sorted_food
+            if place["name"] != top_food["name"]
+        ),
+        None
+    )
+
+    food = f"""Top Rated Restaurant:
+{top_food['name']}
+{top_food['address']}
+Rating: {top_food['rating']}"""
+
+    if healthy_food:
+        food += f"""
+
+Healthy Food Option:
+{healthy_food['name']}
+{healthy_food['address']}
+Rating: {healthy_food['rating']}"""
+
+    if different_cuisine:
+        food += f"""
+
+Different Cuisine Option:
+{different_cuisine['name']}
+{different_cuisine['address']}
+Rating: {different_cuisine['rating']}"""
+
+    return food
+   
+
+def select_photo_spot(attraction_places):
+    if not attraction_places:
+        return "No photo spot found nearby."
+
+    sorted_attractions = sorted(
+        attraction_places,
+        key=lambda place: place["rating"] if isinstance(place["rating"], (int, float)) else 0,
+        reverse=True
+    )
+
+    photo_spot = sorted_attractions[0]
+
+    return f"""{photo_spot['name']}
+{photo_spot['address']}
+Rating: {photo_spot['rating']}"""
+
+
+def select_experience(attraction_places, nightlife_places):
+    combined_places = attraction_places[1:] + nightlife_places
+
+    if not combined_places:
+        return "No local experience found nearby."
+
+    sorted_places = sorted(
+        combined_places,
+        key=lambda place: place["rating"] if isinstance(place["rating"], (int, float)) else 0,
+        reverse=True
+    )
+
+    experience = sorted_places[0]
+
+    return f"""{experience['name']}
+{experience['address']}
+Rating: {experience['rating']}"""
 
 
 def get_ai_suggestions(destination, time_context=None):
@@ -52,14 +161,6 @@ You are WanderCue, a proactive local travel discovery agent.
 The user is currently near: {destination}
 The current time context is: {time_of_day}
 The recommendation focus is: {", ".join(recommendation_focus)}
-
-Suggest local recommendations that make sense for the current time of day.
-
-Examples:
-- Morning: coffee, breakfast, sunrise spots, peaceful walks
-- Afternoon: food, attractions, photo spots, experiences
-- Evening: sunset spots, dinner, golden-hour photos
-- Night: safe public places, night views, popular nightlife
 
 Return JSON only in this exact format:
 {{
@@ -102,8 +203,8 @@ def get_fallback_suggestions(destination):
             return places[city]
 
     return {
-        "food": "No food suggestion found. Try checking a trusted maps or travel app.",
-        "photo_spot": "No photo spot found. Try searching nearby scenic viewpoints.",
-        "experience": "No experience found. Try checking local events or visitor centers.",
+        "food": "Live local discovery is temporarily unavailable.",
+        "photo_spot": "Try nearby scenic viewpoints, parks, or well-known public landmarks.",
+        "experience": "Check nearby visitor centers, public attractions, or local event areas.",
         "safety": "Check weather, opening hours, parking, and local safety before visiting."
     }

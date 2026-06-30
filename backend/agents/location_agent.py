@@ -14,14 +14,17 @@ def detect_location_context(latitude, longitude):
             return "Unknown Location"
 
         address = location.raw.get("address", {})
+        print(address)
 
         city = (
-            address.get("city")
-            or address.get("town")
-            or address.get("village")
-            or address.get("municipality")
-            or address.get("county")
-        )
+       address.get("town")
+      or address.get("city")
+      or address.get("village")
+      or address.get("municipality")
+      or address.get("county")
+)
+        if city == "Hampden Township":
+            city = "Mechanicsburg"
 
         state = address.get("state")
 
