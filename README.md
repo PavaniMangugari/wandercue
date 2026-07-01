@@ -24,7 +24,9 @@ WanderCue is an AI-powered travel recommendation assistant that provides persona
 ### Frontend
 - React
 - TypeScript
+- Vite
 - CSS
+
 
 ### Backend
 - Python
@@ -79,6 +81,7 @@ Local Discovery Agent    Smart Planner Agent
 - Location-based personalization
 - External API integration
 - AI-ready architecture with Google Gemini SDK integration
+
 These concepts work together to provide personalized, context-aware travel recommendations using real-time location data and external services.
 
 
@@ -89,6 +92,7 @@ These concepts work together to provide personalized, context-aware travel recom
 ### Frontend
 - React
 - TypeScript
+- Vite
 - Responsive recommendation cards
 - Google Maps integration
 
@@ -161,23 +165,49 @@ wandercue/
 Before running the project, make sure you have:
 
 - Python 3.10+
-- Node.js 18+
+- Node.js 22.13.0 (recommended)
 - npm
 - Google Places API Key
 - Google Geocoding API Key
 
 ---
 
-## Environment Variables
+## Node Version
 
-Create a `.env` file inside the `backend` directory and add the required API keys.
+This project was developed using **Node.js 22.13.0**.
 
-```env
-GOOGLE_PLACES_API_KEY=your_google_places_api_key
-GEMINI_API_KEY=your_gemini_api_key
+If you use **nvm**, run:
+
+```bash
+nvm use
 ```
 
-> **Note:** The Google Gemini SDK is configured for future AI-powered enhancements. The current implementation primarily uses the Google Places API due to Gemini API quota limitations.
+or install Node.js 22.13.0 before running the frontend.
+
+---
+
+## Google Cloud Setup
+
+Before running the application, create a Google Cloud project.
+
+1. Go to <https://console.cloud.google.com/>
+2. Create a new project.
+3. Enable the following APIs:
+   - Google Places API
+   - Google Geocoding API
+4. Go to **APIs & Services → Credentials**.
+5. Click **Create Credentials → API Key**.
+6. Copy the generated API key.
+7. Use the generated API key in the .env file shown below.
+8. Create a `.env` file inside the `backend` directory and add:
+
+```env
+GOOGLE_PLACES_API_KEY=your_google_api_key
+```
+---
+
+
+> **Note:** The project includes the Google Gemini SDK for future AI-powered enhancements. The current implementation uses the Google Places API for recommendation generation, so only a Google Places API key is required to run the application.
 
 ---
 ## How to Run the Project
@@ -186,19 +216,30 @@ GEMINI_API_KEY=your_gemini_api_key
 
 ```bash
 cd backend
+
+python3 -m venv venv
+source venv/bin/activate
+
 pip install -r requirements.txt
+
 uvicorn api:app --reload
+```
+
+The backend will be available at:
+
+```
+http://127.0.0.1:8000
 ```
 
 ### Frontend
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Open the application in your browser:
+The frontend will be available at:
 
 ```
 http://localhost:5173
@@ -206,13 +247,70 @@ http://localhost:5173
 
 ---
 
+## Verify the Application
+
+Once both servers are running:
+
+- Backend: http://127.0.0.1:8000
+- Frontend: http://localhost:5173
+
+Open the frontend in your browser, allow location access, and click **Discover Nearby**.
+
+> **Tip:** If the application does not display recommendations, verify that your Google Places API key is valid, the required APIs are enabled, and browser location access has been granted.
+
+---
+
+
 ## Demo Steps
 
 1. Open the application.
-2. Allow location access.
-3. Click **Discover Nearby**.
+2. Allow browser location access when prompted.
+3. Click Discover Nearby.
 4. View personalized recommendations.
-5. Click **Get Directions** to open Google Maps.
+5. Click Get Directions to open Google Maps.
+
+---
+
+## Troubleshooting
+
+### SSL Certificate Error (macOS)
+
+If you encounter SSL certificate errors while accessing Google APIs, run:
+
+```bash
+python3 -m pip install --upgrade certifi
+```
+
+Restart the backend after installing.
+
+---
+
+### API Key Errors
+
+Make sure:
+
+- Google Places API is enabled.
+- Google Geocoding API is enabled.
+- The API key is correctly added to `.env`.
+
+---
+
+### Location Not Working
+
+Allow location access in your browser.
+
+---
+
+### Frontend Dependency Issues
+
+Delete `node_modules` and reinstall:
+
+```bash
+rm -rf node_modules
+npm ci
+```
+
+> **Note:** `npm ci` installs the exact dependency versions from `package-lock.json`, ensuring a consistent development environment.
 
 ---
 
@@ -232,5 +330,4 @@ http://localhost:5173
 
 AI Agents Capstone Project
 
-GitHub:
-https://github.com/PavaniMangugari
+GitHub: https://github.com/PavaniMangugari/wandercue
