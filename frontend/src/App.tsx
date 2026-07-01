@@ -119,10 +119,7 @@ const formatReviews = (count?: number) => {
 )}
 
 {place.distance_miles !== null && place.distance_miles !== undefined && (
-  <p>
-  📍 {place.distance_miles} mi
   <p>📍 {place.distance_miles} mi</p>
-</p>
 )}
         <div className="card-footer">
   <a
