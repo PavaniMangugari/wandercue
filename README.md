@@ -1,13 +1,13 @@
 # WanderCue
 
-WanderCue is an AI-powered travel recommendation assistant that helps users discover nearby places based on their current location and time of day. It provides personalized suggestions for restaurants, photo spots, and local attractions with useful details such as ratings, business hours, and Google Maps directions.
+WanderCue is an AI-powered travel recommendation assistant that provides personalized recommendations based on a user's current location and time of day. It helps users discover restaurants, scenic photo spots, and nearby attractions while displaying ratings, business hours, and Google Maps directions.
 
 ---
 
 ## Features
 
 - 📍 Detects the user's current location
-- 🤖 Generates smart recommendations using AI agents
+- 🤖 Generates personalized recommendations using a multi-agent architecture
 - 🍽️ Recommends highly rated restaurants
 - 🌿 Suggests healthy food options
 - 📸 Finds scenic photo spots
@@ -29,40 +29,91 @@ WanderCue is an AI-powered travel recommendation assistant that helps users disc
 ### Backend
 - Python
 - FastAPI
+  
+### APIs & Services
+- Google Places API
+- Google Geocoding API
+- Google Gemini SDK (configured for future AI enhancements)
+- Browser Geolocation API
 
-### APIs
+---
+## Architecture
+
+```
+                                  User
+                  │
+                  ▼
+      React + TypeScript Frontend
+                  │
+          HTTP (REST API)
+                  │
+                  ▼
+          FastAPI Backend (API)
+                  │
+                  ▼
+         Coordinator Agent
+                  │
+      ┌───────────┴───────────┐
+      ▼                       ▼
+Local Discovery Agent    Smart Planner Agent
+      │                       │
+      └───────────┬───────────┘
+                  ▼
+     Recommendation Formatter
+                  │
+                  ▼
+     Google Places & Geocoding APIs
+                  │
+                  ▼
+      Formatted Recommendation Cards
+                  │
+                  ▼
+      React User Interface
+```
+---
+
+## AI Concepts Demonstrated
+These concepts work together to provide personalized, context-aware travel recommendations using real-time location data and external services.
+
+- Multi-agent architecture
+- Context-aware recommendations
+- Location-based personalization
+- External API integration
+- AI-ready architecture with Google Gemini SDK integration
+
+---
+
+## System Components
+
+### Frontend
+- React
+- TypeScript
+- Responsive recommendation cards
+- Google Maps integration
+
+### Backend
+- FastAPI
+- Recommendation formatter
+- AI agent orchestration
+- Business logic
+
+### AI Agents
+- Coordinator Agent
+- Local Discovery Agent
+- Smart Planner Agent
+
+### External Services
 - Google Places API
 - Google Geocoding API
 - Browser Geolocation API
 
 ---
-
-## Project Workflow
-
-```
-User
-   │
-   ▼
-React Frontend
-   │
-   ▼
-FastAPI Backend
-   │
-   ▼
-Google Places API
-   │
-   ▼
-Recommendation Engine
-   │
-   ▼
-Personalized Recommendation Cards
-```
-
----
-
 ## Recommendation Categories
 
+Each recommendation may include:
+
 - ⭐ Recommended Restaurant
+- 🌿 Healthy Choice (when available)
 - 🌎 Try Something Different
 - 📸 Perfect Photo Spot
 - 🎯 Explore Nearby
@@ -88,18 +139,46 @@ wandercue/
 ├── backend/
 │   ├── agents/
 │   ├── services/
+│   ├── skills/
 │   ├── api.py
-│   └── main.py
+│   ├── main.py
+│   └── requirements.txt
 │
 ├── frontend/
 │   ├── src/
-│   └── public/
+│   ├── public/
+│   └── package.json
 │
+├── .gitignore
 └── README.md
 ```
 
 ---
 
+## Prerequisites
+
+Before running the project, make sure you have:
+
+- Python 3.10+
+- Node.js 18+
+- npm
+- Google Places API Key
+- Google Geocoding API Key
+
+---
+
+## Environment Variables
+
+Create a `.env` file inside the `backend` directory and add the required API keys.
+
+```env
+GOOGLE_PLACES_API_KEY=your_google_places_api_key
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+> **Note:** The Google Gemini SDK is configured for future AI-powered enhancements. The current implementation primarily uses the Google Places API due to Gemini API quota limitations.
+
+---
 ## How to Run the Project
 
 ### Backend
@@ -107,7 +186,7 @@ wandercue/
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn api:app --reload
 ```
 
 ### Frontend
@@ -138,16 +217,18 @@ http://localhost:5173
 
 ## Future Improvements
 
-- Driving time estimation
-- Weather-based recommendations
-- User preferences and favorites
-- AI-generated day itineraries
+- AI-generated travel itineraries
+- Personalized recommendations based on user preferences
+- Weather-aware suggestions
+- Walking and cycling recommendations
+- Save favorite places
 - Recommendation history
-
 ---
 
 ## Author
 
 **Pavani Mangugari**
 
-Capstone Project – WanderCue
+AI Agents Capstone Project
+
+GitHub: https://github.com/PavaniManggugari
