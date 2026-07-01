@@ -6,8 +6,7 @@ load_dotenv()
 
 GOOGLE_PLACES_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 GOOGLE_PLACES_URL = "https://places.googleapis.com/v1/places:searchNearby"
-
-
+    
 def search_nearby_places(
     latitude, longitude, included_types, radius=3000, max_results=5
 ):
@@ -17,7 +16,7 @@ def search_nearby_places(
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.location,places.currentOpeningHours",
+        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.location,places.currentOpeningHours,places.photos",
     }
 
     payload = {
@@ -60,6 +59,7 @@ def search_nearby_places(
                     "latitude": location.get("latitude"),
                     "longitude": location.get("longitude"),
                     "open_now": place.get("currentOpeningHours", {}).get("openNow"),
+                    "photo_name": place.get("photos", [{}])[0].get("name") if place.get("photos") else None,
                     "weekday_descriptions": place.get("currentOpeningHours", {}).get(
                     "weekdayDescriptions", []
                     ),
@@ -108,19 +108,47 @@ def get_food_types_by_time(time_of_day):
 
 
 def get_attraction_types_by_time(time_of_day):
+    common_types = [
+        "tourist_attraction",
+        "museum",
+        "art_gallery",
+        "botanical_garden",
+        "amusement_park",
+        "zoo",
+        "aquarium",
+        "historical_place",
+        "hiking_area",
+        "visitor_center"
+    ]
+
     if time_of_day == "morning":
-        return ["park", "tourist_attraction"]
+        return common_types + [
+            "park",
+            "botanical_garden",
+            "hiking_area"
+        ]
 
     if time_of_day == "afternoon":
-        return ["tourist_attraction", "park", "museum"]
+        return common_types + [
+            "museum",
+            "park"
+        ]
 
     if time_of_day == "evening":
-        return ["tourist_attraction", "park"]
+        return common_types + [
+            "tourist_attraction"
+        ]
 
     if time_of_day == "night":
-        return ["tourist_attraction", "park"]
+        return [
+            "tourist_attraction",
+            "bar",
+            "night_club",
+            "movie_theater",
+            "bowling_alley"
+        ]
 
-    return ["tourist_attraction"]
+    return common_types
 
 
 def get_places_for_wandercue(latitude, longitude, time_of_day="afternoon"):
@@ -154,8 +182,8 @@ def get_places_for_wandercue(latitude, longitude, time_of_day="afternoon"):
         latitude,
         longitude,
         attraction_types,
-        radius=5000,
-        max_results=5,
+        radius=15000,
+        max_results=15,
     )
 
     nightlife_places = []
@@ -165,8 +193,8 @@ def get_places_for_wandercue(latitude, longitude, time_of_day="afternoon"):
             latitude,
             longitude,
             ["bar", "night_club"],
-            radius=5000,
-            max_results=5,
+            radius=15000,
+            max_results=10,
         )
 
     return {

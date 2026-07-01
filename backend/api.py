@@ -1,3 +1,5 @@
+from fastapi.responses import RedirectResponse
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -129,3 +131,14 @@ def auto_suggest_v2(request: AutoSuggestRequest):
         "time_context": time_context,
         "cards": cards,
     }
+    
+@app.get("/photo")
+def get_place_photo(photo_name: str):
+    google_api_key = os.getenv("GOOGLE_PLACES_API_KEY")
+
+    photo_url = (
+        f"https://places.googleapis.com/v1/{photo_name}/media"
+        f"?maxHeightPx=500&maxWidthPx=800&key={google_api_key}"
+    )
+
+    return RedirectResponse(photo_url)

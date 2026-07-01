@@ -2,7 +2,12 @@ from math import radians, sin, cos, sqrt, atan2
 
 
 def calculate_distance_miles(user_lat, user_lng, place_lat, place_lng):
-    if place_lat is None or place_lng is None:
+    if (
+        user_lat is None
+        or user_lng is None
+        or place_lat is None
+        or place_lng is None
+    ):
         return None
 
     earth_radius_miles = 3958.8
@@ -41,6 +46,7 @@ def format_place(place, user_lat=None, user_lng=None):
         "distance_miles": distance,
         "open_now": place.get("open_now"),
         "weekday_descriptions": place.get("weekday_descriptions", []),
+        "photo_name": place.get("photo_name"),
     }
 
 
@@ -89,8 +95,170 @@ def select_healthy_food(healthy_places):
     return None
 
 
+def is_restaurant_or_food_place(place):
+    restaurant_types = [
+        "restaurant",
+        "fast_food_restaurant",
+        "cafe",
+        "meal_takeaway",
+        "meal_delivery",
+        "pizza_restaurant",
+        "hamburger_restaurant",
+        "steak_house",
+        "seafood_restaurant",
+        "mexican_restaurant",
+        "italian_restaurant",
+        "chinese_restaurant",
+        "indian_restaurant",
+        "japanese_restaurant",
+        "mediterranean_restaurant",
+        "bar",
+        "brewery",
+        "pub",
+    ]
+
+    place_types = place.get("types", [])
+    return any(t in place_types for t in restaurant_types)
+
+
+def select_photo_spot(sorted_attractions):
+    photo_types = [
+        "park",
+        "tourist_attraction",
+        "botanical_garden",
+        "nature_preserve",
+        "national_park",
+        "state_park",
+        "garden",
+        "museum",
+        "historical_landmark",
+        "monument",
+        "observation_deck",
+    ]
+
+    bad_photo_types = [
+        "restaurant",
+        "fast_food_restaurant",
+        "cafe",
+        "bar",
+        "brewery",
+        "pub",
+        "meal_takeaway",
+    ]
+
+    for place in sorted_attractions:
+        place_types = place.get("types", [])
+
+        is_good_photo_spot = any(t in place_types for t in photo_types)
+        is_bad_photo_spot = any(t in place_types for t in bad_photo_types)
+
+        if is_good_photo_spot and not is_bad_photo_spot:
+            return place
+
+    return sorted_attractions[0] if sorted_attractions else None
+
+
+def select_experience_options(
+    sorted_attractions,
+    sorted_nightlife,
+    photo_spot,
+    user_lat=None,
+    user_lng=None,
+):
+    experience_options = []
+
+    for place in sorted_attractions:
+        if photo_spot and place.get("name") == photo_spot.get("name"):
+            continue
+
+        if is_restaurant_or_food_place(place):
+            continue
+
+        formatted_place = format_place(place, user_lat, user_lng)
+
+        if formatted_place:
+            experience_options.append(formatted_place)
+
+        if len(experience_options) == 3:
+            break
+
+    if not experience_options:
+        for place in sorted_nightlife:
+            if is_restaurant_or_food_place(place):
+                continue
+
+            formatted_place = format_place(place, user_lat, user_lng)
+
+            if formatted_place:
+                experience_options.append(formatted_place)
+
+            if len(experience_options) == 3:
+                break
+
+    return experience_options
+def get_cuisine_types(place):
+    cuisine_types = [
+        "mexican_restaurant",
+        "italian_restaurant",
+        "indian_restaurant",
+        "chinese_restaurant",
+        "thai_restaurant",
+        "japanese_restaurant",
+        "mediterranean_restaurant",
+        "vietnamese_restaurant",
+        "korean_restaurant",
+        "greek_restaurant",
+        "middle_eastern_restaurant",
+    ]
+
+    place_types = place.get("types", [])
+    return [t for t in place_types if t in cuisine_types]
+
+
+def select_different_cuisine(sorted_food, top_food):
+    if not sorted_food or not top_food:
+        return None
+
+    top_cuisines = get_cuisine_types(top_food)
+
+    excluded_types = [
+        "bar",
+        "brewery",
+        "pub",
+        "night_club",
+        "fast_food_restaurant",
+    ]
+
+    for place in sorted_food:
+        if place.get("name") == top_food.get("name"):
+            continue
+
+        place_types = place.get("types", [])
+
+        if any(t in place_types for t in excluded_types):
+            continue
+
+        place_cuisines = get_cuisine_types(place)
+
+        if place_cuisines and place_cuisines != top_cuisines:
+            return place
+
+    for place in sorted_food:
+        if place.get("name") != top_food.get("name"):
+            place_types = place.get("types", [])
+
+            if not any(t in place_types for t in excluded_types):
+                return place
+
+    return None
+
+
 def build_card_recommendations(
-    location, time_context, places_data, user_lat=None, user_lng=None
+    location,
+    time_context,
+    places_data,
+    user_lat=None,
+    user_lng=None,
 ):
     food_places = places_data.get("food_places", [])
     healthy_food_places = places_data.get("healthy_food_places", [])
@@ -105,23 +273,17 @@ def build_card_recommendations(
     top_food = sorted_food[0] if sorted_food else None
     healthy_food = select_healthy_food(sorted_healthy)
 
-    different_cuisine = None
-    if sorted_food:
-        for place in sorted_food:
-            if top_food and place["name"] != top_food["name"]:
-                different_cuisine = place
-                break
+    different_cuisine = select_different_cuisine(sorted_food, top_food)
 
-    photo_spot = sorted_attractions[0] if sorted_attractions else None
+    photo_spot = select_photo_spot(sorted_attractions)
 
-    experience = None
-    remaining_attractions = (
-        sorted_attractions[1:] if len(sorted_attractions) > 1 else []
+    experience_options = select_experience_options(
+        sorted_attractions,
+        sorted_nightlife,
+        photo_spot,
+        user_lat,
+        user_lng,
     )
-    if remaining_attractions:
-        experience = remaining_attractions[0]
-    elif sorted_nightlife:
-        experience = sorted_nightlife[0]
 
     return {
         "current_location": location,
@@ -133,6 +295,6 @@ def build_card_recommendations(
             "different_cuisine": format_place(different_cuisine, user_lat, user_lng),
         },
         "photo_spot": format_place(photo_spot, user_lat, user_lng),
-        "experience": format_place(experience, user_lat, user_lng),
+        "experience": experience_options,
         "safety_tip": "Check opening hours, parking, weather, and local safety before visiting.",
     }
