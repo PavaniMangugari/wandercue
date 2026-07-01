@@ -73,13 +73,14 @@ Local Discovery Agent    Smart Planner Agent
 ---
 
 ## AI Concepts Demonstrated
-These concepts work together to provide personalized, context-aware travel recommendations using real-time location data and external services.
 
 - Multi-agent architecture
 - Context-aware recommendations
 - Location-based personalization
 - External API integration
 - AI-ready architecture with Google Gemini SDK integration
+These concepts work together to provide personalized, context-aware travel recommendations using real-time location data and external services.
+
 
 ---
 
@@ -110,7 +111,7 @@ These concepts work together to provide personalized, context-aware travel recom
 ---
 ## Recommendation Categories
 
-Each recommendation may include:
+The application can recommend:
 
 - ⭐ Recommended Restaurant
 - 🌿 Healthy Choice (when available)
@@ -222,7 +223,7 @@ http://localhost:5173
 - Weather-aware suggestions
 - Walking and cycling recommendations
 - Save favorite places
-- Recommendation history
+- Recommendation history and recent searches
 ---
 
 ## Author
@@ -231,4 +232,5 @@ http://localhost:5173
 
 AI Agents Capstone Project
 
-GitHub: https://github.com/PavaniManggugari
+GitHub:
+https://github.com/PavaniMangugari
